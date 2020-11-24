@@ -1,0 +1,23 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validation-webhook-example-cfg
+  labels:
+    app: admission-webhook-example
+webhooks:
+  - name: validation.admission-webhook-example.zouhl.com
+    clientConfig:
+#      url: https://zouhl.com/validate # for dev
+      service:
+        name: admission-webhook-example-svc
+        namespace: webhook-example
+        path: "/validate"
+      caBundle: ${CA_BUNDLE}
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: ["apps", ""]
+        apiVersions: ["v1"]
+        resources: ["deployments","services"]
+    namespaceSelector:
+      matchLabels:
+        admission-webhook-example: enabled

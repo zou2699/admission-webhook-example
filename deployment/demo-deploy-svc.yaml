@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: demo-istio
+    version: 1.0.0
+  name: demo-istio
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-istio
+  template:
+    metadata:
+      labels:
+        app: demo-istio
+        version: 1.0.0
+    spec:
+      containers:
+        - image: harbor.jwell56.com/dev/demo-istio:latest
+          imagePullPolicy: IfNotPresent
+          name: demo-istio
+          env:
+            - name: VERSION
+              value: 1.0.0
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: demo-istio
+  name: demo-istio
+  namespace: demo
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: demo-istio
+  sessionAffinity: None
+  type: ClusterIP
