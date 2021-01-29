@@ -28,11 +28,13 @@ func main() {
 	flag.StringVar(&parameters.keyFile, "tlsKeyFile", "/etc/webhook/certs/key.pem", "File containing the x509 private key to --tlsCertFile.")
 	flag.Parse()
 
+	// 加载 TLS 配置证书
 	pair, err := tls.LoadX509KeyPair(parameters.certFile, parameters.keyFile)
 	if err != nil {
 		klog.Errorf("Failed to load key pair: %v", err)
 	}
 
+	// 实例化 webhookServer
 	whsvr := WebhookServer{
 		server: &http.Server{
 			Addr:      fmt.Sprintf(":%v", parameters.port),
@@ -46,9 +48,10 @@ func main() {
 	mux.HandleFunc("/validate", whsvr.serve)
 	whsvr.server.Handler = mux
 
+	// 监听 http
 	go func() {
-		if err := whsvr.server.ListenAndServeTLS("",""); err != nil {
-			klog.Errorf("Failed to listen serve webhook server:%v", err)
+		if err := whsvr.server.ListenAndServeTLS("", ""); err != nil {
+			klog.Errorf("Failed to listen serve webhook server: %v", err)
 		}
 	}()
 

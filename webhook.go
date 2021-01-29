@@ -161,24 +161,19 @@ func validationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool 
 func updateAnnotations(target map[string]string, added map[string]string) (patch []patchOperation) {
 	for key, value := range added {
 		// https://tools.ietf.org/html/rfc6902#page-5
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  "/metadata/annotations/" + escapeJSONPointerValue(key),
-			Value: value,
-		})
-		// if target == nil || target[key] == "" { // 如果 target 里面没有这个则patch
-		// 	patch = append(patch, patchOperation{
-		// 		Op:    "add",
-		// 		Path:  "/metadata/annotations/" + escapeJSONPointerValue(key),
-		// 		Value: value,
-		// 	})
-		// } else { // 存在的注解则替换
-		// 	patch = append(patch, patchOperation{
-		// 		Op:    "replace",
-		// 		Path:  "/metadata/annotations/" + escapeJSONPointerValue(key),
-		// 		Value: value,
-		// 	})
-		// }
+		if target == nil || target[key] == "" { // 如果 target 里面没有这个则patch
+			patch = append(patch, patchOperation{
+				Op:    "add",
+				Path:  "/metadata/annotations/" + escapeJSONPointerValue(key),
+				Value: value,
+			})
+		} else { // 存在的注解则替换
+			patch = append(patch, patchOperation{
+				Op:    "replace",
+				Path:  "/metadata/annotations/" + escapeJSONPointerValue(key),
+				Value: value,
+			})
+		}
 	}
 	return patch
 }
@@ -187,24 +182,19 @@ func updateAnnotations(target map[string]string, added map[string]string) (patch
 func updateLabels(target map[string]string, added map[string]string) (patch []patchOperation) {
 	for key, value := range added {
 		// https://tools.ietf.org/html/rfc6902#page-5
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  "/metadata/labels/" + escapeJSONPointerValue(key),
-			Value: value,
-		})
-		// if target == nil || target[key] == "" {
-		// 	patch = append(patch, patchOperation{
-		// 		Op:    "add",
-		// 		Path:  "/metadata/labels/" + escapeJSONPointerValue(key),
-		// 		Value: value,
-		// 	})
-		// } else {
-		// 	patch = append(patch, patchOperation{
-		// 		Op:    "replace",
-		// 		Path:  "/metadata/labels/" + escapeJSONPointerValue(key),
-		// 		Value: value,
-		// 	})
-		// }
+		if target == nil || target[key] == "" {
+			patch = append(patch, patchOperation{
+				Op:    "add",
+				Path:  "/metadata/labels/" + escapeJSONPointerValue(key),
+				Value: value,
+			})
+		} else {
+			patch = append(patch, patchOperation{
+				Op:    "replace",
+				Path:  "/metadata/labels/" + escapeJSONPointerValue(key),
+				Value: value,
+			})
+		}
 	}
 	return patch
 }
@@ -414,7 +404,7 @@ func (whsvr WebhookServer) serve(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// https://github.com/kubernetes/kubernetes/issues/72663
+// escape JSON Pointer value per https://tools.ietf.org/html/rfc6901
 func escapeJSONPointerValue(in string) string {
 	out := strings.Replace(in, "~", "~0", -1)
 	return strings.Replace(out, "/", "~1", -1)
